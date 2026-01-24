@@ -1,15 +1,19 @@
 <template>
-   <div class="app">
+   <div class="app slds-var-p-around_medium" >
     <div class="box">
         <h1>BMI Calculator</h1>
-        <section>
-            <h2>Your BMI value is:</h2>
-            <div class="result-value">BMI Value</div>
-            <h2>Result:</h2>
-            <div class="result-value">Result Value</div>
-            <button class="slds-button slds-button_neutral slds-button_stretch custom-button slds-var-m-bottom_large slds-var-m-top_large" onclick={recalculate}>Recalculate</button>
-        </section>
-        <form onsubmit={submitHandler}>
+         <template if:true={result}>
+            <section>
+                <h2>Your BMI value is:</h2>
+                <div class="result-value">{bmiValue}</div>
+                <h2>Result:</h2>
+                <div class="result-value">{result}</div>
+                <button class="slds-button slds-button_neutral slds-button_stretch custom-button slds-var-m-bottom_large slds-var-m-top_large" onclick={recalculate}>Recalculate</button>
+            </section>
+        </template>
+          
+        <template if:false={result}>
+            <form onsubmit={submitHandler}>
             <div class="slds-form-element">
             <label class="slds-form-element__label slds-text-title_bold" for="text-input-height" >Height(in)</label>
             <div class="slds-form-element__control">
@@ -24,6 +28,9 @@
             </div>
             <button class="slds-button slds-button_neutral slds-button_stretch custom-button slds-var-m-bottom_large">Calculate</button>
         </form>
+        </template>
+            
+
         <div class="info-wrapper">
             <h2>What your BMI means</h2>
             <p class="slds-var-m-bottom_medium">Once you have calculated your BMI, you can determine your healthy weight range. If you BMI is:</p></p>
