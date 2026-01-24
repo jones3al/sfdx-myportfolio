@@ -45,6 +45,9 @@ export default class BmiCalculator extends LightningElement {
         console.log("Result is: ", this.result)
       }
       recalculate(){
-         
+         this.result = ''
+         this.bmiValue = ''
+         this.weight = ''
+         this.height = ''
       }
 }
