@@ -2,8 +2,27 @@
    <div class="app">
     <div class="box">
         <h1>BMI Calculator</h1>
-        <form>
-         <!--form content goes here-->
+        <section>
+            <h2>Your BMI value is:</h2>
+            <div class="result-value">BMI Value</div>
+            <h2>Result:</h2>
+            <div class="result-value">Result Value</div>
+            <button class="slds-button slds-button_neutral slds-button_stretch custom-button slds-var-m-bottom_large slds-var-m-top_large" onclick={recalculate}>Recalculate</button>
+        </section>
+        <form onsubmit={submitHandler}>
+            <div class="slds-form-element">
+            <label class="slds-form-element__label slds-text-title_bold" for="text-input-height" >Height(in)</label>
+            <div class="slds-form-element__control">
+            <input type="number" id="text-input-height" min="0" placeholder="Enter your height in inches" required class="slds-input" name="height" value={height} onchange={inputHandler} />
+            </div>
+            </div>
+            <div class="slds-form-element">
+            <label class="slds-form-element__label slds-text-title_bold" for="text-input-weight" >Weight(lbs)</label>
+            <div class="slds-form-element__control">
+            <input type="number" id="text-input-weight" min="0" placeholder="Enter your weight in pounds" required class="slds-input" name="weight" value={weight} onchange={inputHandler}/>
+            </div>
+            </div>
+            <button class="slds-button slds-button_neutral slds-button_stretch custom-button slds-var-m-bottom_large">Calculate</button>
         </form>
         <div class="info-wrapper">
             <h2>What your BMI means</h2>

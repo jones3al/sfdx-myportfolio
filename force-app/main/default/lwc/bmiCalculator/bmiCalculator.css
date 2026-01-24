@@ -41,3 +41,24 @@ h2{
     font-size: 26px;
     color: var(--lightpink);
 }
+label{
+    font-size: 20px;
+    color: var(--lightwhite);
+}
+input{
+    color: var(--dullblue);
+    padding: 8px;
+    font-size: var(--size16);
+}
+.custom-button{
+    font-size: var(--size16);
+    padding: var(--size12);
+    background: var(--lightpink);
+    color: var(--lightwhite);
+    border-color: var(--lightpink);
+}
+.result-value{
+    color: var(--lightblue);
+    font-size: 30px;
+
+}
