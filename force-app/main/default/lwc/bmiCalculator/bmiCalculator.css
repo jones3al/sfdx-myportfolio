@@ -9,12 +9,17 @@
     --size12: 12px;
 
 }
-
+.app{
+    min-height: 100vh;
+    background-image: url(/sfsites/c/resource/BMIAppBackground);
+    background-size: cover;
+    background-repeat: no-repeat;
+}
 .box{
     max-width: 420px;
     text-align: center;
     margin: auto;
-    background: var(--lightblue);
+    background: var(--darkblue);
     color: var(--lightwhite);
     padding: var(--size16);
     border-radius: 38px;
@@ -24,7 +29,6 @@ h1{
     padding: 20px 0;
     font-weight: bold;
 }
-
 .info-wrapper{
     background: var(--dullblue);
     padding: var(--size16);
@@ -32,4 +36,8 @@ h1{
     border-bottom-right-radius: 38px;
     font-size: var(--size14);
     text-align: center;
+}
+h2{
+    font-size: 26px;
+    color: var(--lightpink);
 }
