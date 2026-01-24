@@ -1,9 +1,35 @@
+:host(){
+    --darkblue: #0b0d21;
+    --lightwhite: #fafafa;
+    --lightblue: #0070f3;
+    --lightpink: #e91e63;
+    --dullblue: #1d1e33;
+    --size16: 16px;
+    --size14: 14px;
+    --size12: 12px;
+
+}
+
 .box{
     max-width: 420px;
     text-align: center;
     margin: auto;
-    background: #0b0d21;
-    color: white;
-    padding: 16px;
+    background: var(--lightblue);
+    color: var(--lightwhite);
+    padding: var(--size16);
     border-radius: 38px;
+}
+h1{
+    font-size: 36px;
+    padding: 20px 0;
+    font-weight: bold;
+}
+
+.info-wrapper{
+    background: var(--dullblue);
+    padding: var(--size16);
+    border-bottom-left-radius: 38px;
+    border-bottom-right-radius: 38px;
+    font-size: var(--size14);
+    text-align: center;
 }
