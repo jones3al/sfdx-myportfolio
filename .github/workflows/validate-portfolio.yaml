@@ -1,0 +1,66 @@
+name: Validate Portfolio on PR to main
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'force-app/**'
+
+jobs:
+  Validate-Against-Production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 'Checkout source code'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: 'Install Salesforce CLI'
+        run: npm install @salesforce/cli --global
+
+      - name: 'Installing sfdx git delta'
+        run: |
+          echo y | sf plugins install sfdx-git-delta
+          sf plugins
+
+      - name: 'Create delta packages'
+        run: |
+          mkdir changed-sources
+          sf sgd source delta \
+            --to "${{ github.event.pull_request.head.sha }}" \
+            --from "origin/${{ github.event.pull_request.base.ref }}" \
+            --output-dir changed-sources/ \
+            --generate-delta \
+            --source-dir force-app/
+          echo "[INFO] Diff generated successfully"
+          echo "----- changed-sources/package/package.xml -----"
+          cat changed-sources/package/package.xml || true
+
+      - name: 'Skip if no changes'
+        id: check_changes
+        run: |
+          if [ ! -d "changed-sources/force-app" ] || [ -z "$(ls -A changed-sources/force-app 2>/dev/null)" ]; then
+            echo "No deployable metadata changes detected."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 'Validate deploy against production (check-only)'
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
+          sf org login jwt \
+            --username ${{ secrets.DEPLOYMENT_USERNAME }} \
+            --jwt-key-file server.key \
+            --clientid ${{ secrets.JWT_CLIENT_ID }} \
+            --instance-url ${{ vars.INSTANCE_URL }} \
+            --set-default
+          sf project deploy validate \
+            --source-dir changed-sources/force-app \
+            --test-level RunLocalTests \
+            --wait 30
