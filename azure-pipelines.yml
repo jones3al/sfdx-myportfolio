@@ -1,0 +1,29 @@
+name: Validate SFDX Package
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate_package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Salesforce CLI
+        run: |
+          npm install -g @salesforce/cli
+
+      - name: Authenticate to Target Org
+        run: |
+          sf org login sfdx-url --sfdx-url-file <(echo "$(SFDX_AUTH_URL)" --set-default-username --alias target-org
+
+      - name: Validate Package Metadata
+        run: |
+          sf project deploy validate \
+            --target-org target-org \
+            --manifest manifest/package.xml \
+            --test-level RunLocalTests \
+            --wait 60
+
