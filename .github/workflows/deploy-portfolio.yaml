@@ -23,13 +23,13 @@ jobs:
 
       - name: 'Installing sfdx git delta'
         run: |
-          sf plugins install sfdx-git-delta
+          echo y | sf plugins install sfdx-git-delta
           sf plugins
 
       - name: 'Create delta packages'
         run: |
           mkdir changed-sources
-          sf sgd source delta --to "HEAD" --from "HEAD~1" --output changed-sources/ --generate-delta --source force-app/
+          sf sgd source delta --to "HEAD" --from "HEAD~1" --output-dir changed-sources/ --generate-delta --source-dir force-app/
           echo "[INFO] Diff generated successfully"
 
       - name: 'Deploy to environment with running all local tests'
