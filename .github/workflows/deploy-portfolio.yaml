@@ -14,28 +14,27 @@ jobs:
           node-version: '18'
       - name: 'Checkout source code'
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       # Now Install Salesforce CLI
       - name: 'Install Salesforce CLI'
         run: npm install @salesforce/cli --global
-        
+
       - name: 'Installing sfdx git delta'
         run: |
-            echo Y | sfdx plugins:install sfdx-git-delta
-            sfdx plugins
-        
+          sf plugins install sfdx-git-delta
+          sf plugins
+
       - name: 'Create delta packages'
         run: |
-            mkdir changed-sources
-            sf sgd source delta --to "HEAD" --from "HEAD~1" --output changed-sources/ --generate-delta 
-            --source force-app/
-            echo "[INFO] Diff generated successfully"
+          mkdir changed-sources
+          sf sgd source delta --to "HEAD" --from "HEAD~1" --output changed-sources/ --generate-delta --source force-app/
+          echo "[INFO] Diff generated successfully"
 
       - name: 'Deploy to environment with running all local tests'
         run: |
-           echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
-           sf org login jwt --username ${{ secrets.DEPLOYMENT_USERNAME }} -- jwt-key-file server.key
-           --clientid ${{ secrets.JWT_CLIENT_ID }} --instanceurl ${{ vars.INSTANCE_URL }}
-           --set-default
-           sf project deploy start --source-path changed-sources/force-app --test-level RunLocalTests --wait 10
+          echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
+          sf org login jwt --username ${{ secrets.DEPLOYMENT_USERNAME }} --jwt-key-file server.key --clientid ${{ secrets.JWT_CLIENT_ID }} --instance-url ${{ vars.INSTANCE_URL }} --set-default
+          sf project deploy start --source-dir changed-sources/force-app --test-level RunLocalTests --wait 10
 
