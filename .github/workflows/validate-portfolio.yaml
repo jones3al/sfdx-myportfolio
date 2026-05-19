@@ -57,7 +57,7 @@ jobs:
           sf org login jwt \
             --username ${{ secrets.DEPLOYMENT_USERNAME }} \
             --jwt-key-file server.key \
-            --clientid ${{ secrets.JWT_CLIENT_ID }} \
+            --clientid ${{ secrets.SF_CONSUMER_KEY  }} \
             --instance-url ${{ vars.INSTANCE_URL }} \
             --set-default
           sf project deploy validate \
