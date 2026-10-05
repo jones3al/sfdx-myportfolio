@@ -1,4 +1,4 @@
-name: Validate Portfolio on PR to main
+name: Validate PR to main
 on:
   pull_request:
     branches: [main]
@@ -49,6 +49,49 @@ jobs:
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: 'Package what would be deployed'
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          mkdir -p deployment-package
+          cp -R changed-sources/. deployment-package/
+          {
+            echo "# Deployment package"
+            echo ""
+            echo "- Source branch: \`${{ github.event.pull_request.head.ref }}\`"
+            echo "- Source commit: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "- Target branch: \`${{ github.event.pull_request.base.ref }}\`"
+            echo "- Built: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            echo ""
+            echo "## Files"
+            echo ""
+            echo '```'
+            (cd deployment-package && find . -type f | sort)
+            echo '```'
+            echo ""
+            echo "## package.xml"
+            echo ""
+            echo '```xml'
+            cat changed-sources/package/package.xml
+            echo '```'
+            if [ -f changed-sources/destructiveChanges/destructiveChanges.xml ]; then
+              echo ""
+              echo "## destructiveChanges.xml"
+              echo ""
+              echo '```xml'
+              cat changed-sources/destructiveChanges/destructiveChanges.xml
+              echo '```'
+            fi
+          } > deployment-package/MANIFEST.md
+          cat deployment-package/MANIFEST.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 'Upload deployment package'
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package-pr-${{ github.event.pull_request.number }}
+          path: deployment-package/
+          retention-days: 30
 
       - name: 'Validate deploy against production (check-only)'
         if: steps.check_changes.outputs.has_changes == 'true'

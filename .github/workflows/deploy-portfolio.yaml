@@ -5,6 +5,9 @@ on:
     paths:
       - 'force-app/**'
 
+permissions:
+  contents: write
+
 jobs:
   Deploy-to-Production:
     runs-on: ubuntu-latest
@@ -32,9 +35,78 @@ jobs:
           sf sgd source delta --to "HEAD" --from "HEAD~1" --output-dir changed-sources/ --generate-delta --source-dir force-app/
           echo "[INFO] Diff generated successfully"
 
+      - name: 'Skip if no changes'
+        id: check_changes
+        run: |
+          if [ ! -d "changed-sources/force-app" ] || [ -z "$(ls -A changed-sources/force-app 2>/dev/null)" ]; then
+            echo "No deployable metadata changes detected."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 'Package what gets deployed'
+        id: package
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          RELEASE_TAG="v$(date -u '+%Y.%m.%d').${{ github.run_number }}"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          mkdir -p deployment-package
+          cp -R changed-sources/. deployment-package/
+          {
+            echo "# Deployment package $RELEASE_TAG"
+            echo ""
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Deployed by: @${{ github.actor }}"
+            echo "- Built: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            echo ""
+            echo "## Files"
+            echo ""
+            echo '```'
+            (cd deployment-package && find . -type f | sort)
+            echo '```'
+            echo ""
+            echo "## package.xml"
+            echo ""
+            echo '```xml'
+            cat changed-sources/package/package.xml
+            echo '```'
+            if [ -f changed-sources/destructiveChanges/destructiveChanges.xml ]; then
+              echo ""
+              echo "## destructiveChanges.xml"
+              echo ""
+              echo '```xml'
+              cat changed-sources/destructiveChanges/destructiveChanges.xml
+              echo '```'
+            fi
+          } > deployment-package/MANIFEST.md
+          cat deployment-package/MANIFEST.md >> "$GITHUB_STEP_SUMMARY"
+          zip -r "deployment-package-$RELEASE_TAG.zip" deployment-package > /dev/null
+
+      - name: 'Upload deployment package'
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package-${{ steps.package.outputs.release_tag }}
+          path: deployment-package/
+          retention-days: 90
+
       - name: 'Deploy to environment with running all local tests'
+        if: steps.check_changes.outputs.has_changes == 'true'
         run: |
           echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
           sf org login jwt --username ${{ secrets.DEPLOYMENT_USERNAME }} --jwt-key-file server.key --clientid ${{ secrets.SF_CONSUMER_KEY }} --instance-url ${{ vars.INSTANCE_URL }} --set-default
           sf project deploy start --source-dir changed-sources/force-app --test-level RunLocalTests --wait 10
+
+      - name: 'Tag release in GitHub'
+        if: steps.check_changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.package.outputs.release_tag }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            --target "${{ github.sha }}" \
+            --title "$RELEASE_TAG" \
+            --notes-file deployment-package/MANIFEST.md \
+            "deployment-package-$RELEASE_TAG.zip"
 
