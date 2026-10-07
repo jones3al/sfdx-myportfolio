@@ -1,5 +1,5 @@
 public with sharing class AccountService {
-  public static final String DEFAULT_RATING = 'Hot';
+  public static final String DEFAULT_RATING = 'Warm';
 
   public class AccountServiceException extends Exception {
   }
